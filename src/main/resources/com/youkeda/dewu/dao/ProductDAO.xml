@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.youkeda.dewu.dao.ProductDAO">
-    <resultMap id="BaseResultMap" type="com.youkeda.dewu.dataobject.ProductDO">
+<mapper namespace="com.youkeda.hashopping.dao.ProductDAO">
+    <resultMap id="BaseResultMap" type="com.youkeda.hashopping.dataobject.ProductDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="price" jdbcType="DOUBLE" property="price"/>
@@ -16,7 +16,7 @@
     where id = #{id,jdbcType=VARCHAR}
   </delete>
 
-    <insert id="insert" parameterType="com.youkeda.dewu.dataobject.ProductDO">
+    <insert id="insert" parameterType="com.youkeda.hashopping.dataobject.ProductDO">
     insert into product (id, name, price, 
       purchase_num, product_intro,product_imgs, gmt_created,
       gmt_modified)
@@ -24,7 +24,7 @@
       #{purchaseNum,jdbcType=INTEGER}, #{productIntro,jdbcType=VARCHAR},#{productImgs,jdbcType=VARCHAR}, now(),now())
   </insert>
 
-    <update id="updateByPrimaryKey" parameterType="com.youkeda.dewu.dataobject.ProductDO">
+    <update id="updateByPrimaryKey" parameterType="com.youkeda.hashopping.dataobject.ProductDO">
         update product
         set
         <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(name)">

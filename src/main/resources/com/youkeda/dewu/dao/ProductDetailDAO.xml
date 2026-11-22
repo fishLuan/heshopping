@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.youkeda.dewu.dao.ProductDetailDAO">
-    <resultMap id="BaseResultMap" type="com.youkeda.dewu.dataobject.ProductDetailDO">
+<mapper namespace="com.youkeda.hashopping.dao.ProductDetailDAO">
+    <resultMap id="BaseResultMap" type="com.youkeda.hashopping.dataobject.ProductDetailDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="product_id" jdbcType="VARCHAR" property="productId"/>
         <result column="price" jdbcType="DOUBLE" property="price"/>
@@ -14,7 +14,7 @@
     delete from product_detail
     where id = #{id,jdbcType=VARCHAR}
   </delete>
-    <insert id="insert" parameterType="com.youkeda.dewu.dataobject.ProductDetailDO">
+    <insert id="insert" parameterType="com.youkeda.hashopping.dataobject.ProductDetailDO">
     insert into product_detail (id, product_id, price,
       size, stock, gmt_created,
       gmt_modified)
