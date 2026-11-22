@@ -1,13 +1,13 @@
 package com.youkeda;
 
-import com.youkeda.hashopping.dao.ProductDAO;
-import com.youkeda.hashopping.dao.ProductDetailDAO;
-import com.youkeda.hashopping.dataobject.ProductDO;
-import com.youkeda.hashopping.dataobject.ProductDetailDO;
-import com.youkeda.hashopping.model.Order;
-import com.youkeda.hashopping.model.OrderStatus;
-import com.youkeda.hashopping.service.OrderService;
-import com.youkeda.hashopping.util.UUIDUtils;
+import com.youkeda.hashopping.product.dao.ProductDAO;
+import com.youkeda.hashopping.product.dao.ProductDetailDAO;
+import com.youkeda.hashopping.product.dataobject.ProductDO;
+import com.youkeda.hashopping.product.dataobject.ProductDetailDO;
+import com.youkeda.hashopping.order.model.Order;
+import com.youkeda.hashopping.order.model.OrderStatus;
+import com.youkeda.hashopping.order.service.OrderService;
+import com.youkeda.hashopping.common.util.UUIDUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
