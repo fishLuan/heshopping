@@ -32,7 +32,6 @@ public class User {
 
     private UserStatus status = UserStatus.ACTIVE;
 
-    private UserRole role = UserRole.CUSTOMER;
 
     private LocalDateTime lastLoginAt;
 
@@ -42,14 +41,6 @@ public class User {
 
     public void setStatus(UserStatus status) {
         this.status = status;
-    }
-
-    public UserRole getRole() {
-        return role;
-    }
-
-    public void setRole(UserRole role) {
-        this.role = role;
     }
 
     public LocalDateTime getLastLoginAt() {

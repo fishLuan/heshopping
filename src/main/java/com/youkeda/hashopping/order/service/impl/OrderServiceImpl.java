@@ -99,7 +99,7 @@ public class OrderServiceImpl implements OrderService {
             return null;
         }
         //获取分布式锁
-        RLock transferLock = redisson.getLock("PURCHASE");
+        RLock transferLock = redisson.getLock("hashopping_dict:PURCHASE");
         transferLock.lock();
         try {
             ProductDetail productDetail = productDetailService.get(orderDO.getProductDetailId());
@@ -169,7 +169,7 @@ public class OrderServiceImpl implements OrderService {
         LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
         String date = dtf2.format(localDateTime);
-        RAtomicLong aLong = redisson.getAtomicLong("myOrderPartNum" + date);
+        RAtomicLong aLong = redisson.getAtomicLong("hashopping_dict:myOrderPartNum" + date);
         aLong.expire(10, TimeUnit.SECONDS);
         long count = aLong.incrementAndGet();
         String orderId = date + count;

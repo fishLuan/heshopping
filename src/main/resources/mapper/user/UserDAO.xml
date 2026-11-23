@@ -10,7 +10,6 @@
         <result column="nick_name" property="nickName"/>
         <result column="avatar" property="avatar"/>
         <result column="status" property="status"/>
-        <result column="role" property="role"/>
         <result column="last_login_at" property="lastLoginAt"/>
         <result column="gmt_created" property="gmtCreated"/>
         <result column="gmt_modified" property="gmtModified"/>
@@ -39,11 +38,6 @@
         </set>
         gmt_modified=now()
         where id=#{id}
-    </update>
-
-    <update id="upgradePassword">
-        UPDATE `user` SET pwd = #{newHash}
-        WHERE id = #{id} AND BINARY pwd = BINARY #{oldHash}
     </update>
 
     <update id="recordLogin">

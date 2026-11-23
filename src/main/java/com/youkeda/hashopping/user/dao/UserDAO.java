@@ -21,10 +21,6 @@ public interface UserDAO {
 
     int update(UserDO userDO);
 
-    /** 仅在旧哈希仍然匹配时更新密码，避免覆盖并发修改。 */
-    int upgradePassword(@Param("id") long id, @Param("oldHash") String oldHash,
-                        @Param("newHash") String newHash);
-
     int recordLogin(@Param("id") long id, @Param("lastLoginAt") LocalDateTime lastLoginAt);
 
     int delete(@Param("id") long id);

@@ -1,20 +1,19 @@
 package com.youkeda.hashopping.user.service.impl;
 
 import com.youkeda.hashopping.user.dao.UserDAO;
+import com.youkeda.hashopping.user.dao.UserRoleDAO;
+import org.springframework.transaction.annotation.Transactional;
 import com.youkeda.hashopping.user.dataobject.UserDO;
 import com.youkeda.hashopping.common.model.Result;
 import com.youkeda.hashopping.user.model.User;
 import com.youkeda.hashopping.user.service.UserService;
 import com.youkeda.hashopping.user.service.LoginAttemptGuard;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.Locale;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
@@ -34,10 +33,14 @@ public class UserServiceImpl implements UserService {
     private UserDAO userDAO;
 
     @Autowired
+    private UserRoleDAO userRoleDAO;
+
+    @Autowired
     private LoginAttemptGuard loginAttemptGuard;
 
     /** 注册普通用户并保存 BCrypt 哈希。 */
     @Override
+    @Transactional
     public Result<User> register(String userName, String pwd) {
         Result<User> result = new Result<>();
 
@@ -70,6 +73,9 @@ public class UserServiceImpl implements UserService {
         userDO1.setPwd(passwordEncoder.encode(pwd));
 
         userDAO.add(userDO1);
+        if (userRoleDAO.assignDefaultRole(userDO1.getId()) != 1) {
+            throw new IllegalStateException("默认顾客角色不可用");
+        }
 
         result.setSuccess(true);
 
@@ -105,8 +111,7 @@ public class UserServiceImpl implements UserService {
 
         UserDO userDO = userDAO.findByUserName(userName);
         String storedPassword = userDO == null ? null : userDO.getPwd();
-        boolean legacy = storedPassword != null && storedPassword.matches("[0-9A-Fa-f]{32}");
-        if (!matchesPassword(pwd, storedPassword, legacy)) {
+        if (storedPassword == null || !passwordEncoder.matches(pwd, storedPassword)) {
             if (loginAttemptGuard.recordFailure(userName)) {
                 return lockedResult();
             }
@@ -124,9 +129,6 @@ public class UserServiceImpl implements UserService {
             return result;
         }
 
-        if (legacy) {
-            userDAO.upgradePassword(userDO.getId(), storedPassword, passwordEncoder.encode(pwd));
-        }
         userDO.setLastLoginAt(loginTime);
         result.setSuccess(true);
 
@@ -138,16 +140,6 @@ public class UserServiceImpl implements UserService {
     /** 返回登录失败次数达到上限的提示。 */
     private Result<User> lockedResult() {
         return Result.warning("LOGIN_LOCKED", "登录失败次数过多，请在锁定解除后重试（最长 30 分钟）");
-    }
-
-    /** 验证 BCrypt 哈希，并兼容尚未升级的旧版加盐 MD5 哈希。 */
-    private boolean matchesPassword(String password, String storedPassword, boolean legacy) {
-        if (legacy) {
-            String oldHash = DigestUtils.md5Hex(password + "_ykd2050").toUpperCase(Locale.ROOT);
-            return MessageDigest.isEqual(oldHash.getBytes(StandardCharsets.US_ASCII),
-                    storedPassword.toUpperCase(Locale.ROOT).getBytes(StandardCharsets.US_ASCII));
-        }
-        return storedPassword != null && passwordEncoder.matches(password, storedPassword);
     }
 
     @Override

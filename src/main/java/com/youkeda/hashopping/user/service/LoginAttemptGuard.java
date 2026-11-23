@@ -64,6 +64,7 @@ public class LoginAttemptGuard {
     /** 生成失败计数键，将常见的大小写、重音和空格变体归到同一用户名。 */
     private String key(String userName) {
         String normalized = Normalizer.normalize(userName.strip().toLowerCase(Locale.ROOT), Normalizer.Form.NFKD);
-        return "login:password-error:" + MARKS.matcher(normalized).replaceAll("");
+        // 使用统一键前缀，在 Redis 客户端中按项目分组。
+        return "hashopping_dict:login:password-error:" + MARKS.matcher(normalized).replaceAll("");
     }
 }

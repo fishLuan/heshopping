@@ -1,6 +1,7 @@
 package com.youkeda.hashopping.user.api;
 
 import com.youkeda.hashopping.user.model.LoginUserResponse;
+import com.youkeda.hashopping.user.dao.UserRoleDAO;
 import com.youkeda.hashopping.common.model.Result;
 import com.youkeda.hashopping.user.model.User;
 import com.youkeda.hashopping.user.model.UserStatus;
@@ -32,6 +33,9 @@ public class UserAPI {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserRoleDAO userRoleDAO;
+
     /** 使用用户名和密码注册普通用户。 */
     @PostMapping("/api/user/reg")
     public Result<User> reg(@RequestParam("userName") String userName, @RequestParam("pwd") String pwd) {
@@ -44,14 +48,6 @@ public class UserAPI {
                                           HttpServletRequest request, HttpServletResponse response) {
         return authenticate(credentials == null ? null : credentials.getUserName(),
                 credentials == null ? null : credentials.getPassword(), request, response);
-    }
-
-    /** 兼容原有表单调用使用的 userName 和 pwd 参数。 */
-    @PostMapping(value = "/api/user/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public Result<LoginUserResponse> loginForm(@RequestParam(value = "userName", required = false) String userName,
-                                              @RequestParam(value = "pwd", required = false) String password,
-                                              HttpServletRequest request, HttpServletResponse response) {
-        return authenticate(userName, password, request, response);
     }
 
     /** 使用现有的账号校验逻辑，验证成功后轮换会话 ID 并保存用户 ID。 */
@@ -83,7 +79,7 @@ public class UserAPI {
         HttpSession session = request.getSession();
         request.changeSessionId();
         session.setAttribute(SESSION_USER_ID, result.getData().getId());
-        return Result.success("OK", "登录成功", new LoginUserResponse(result.getData()));
+        return Result.success("OK", "登录成功", new LoginUserResponse(result.getData(), userRoleDAO.findEnabledCodes(result.getData().getId())));
     }
 
     /** 从现有会话读取登录用户，并重新检查账号是否可用。 */
@@ -103,7 +99,7 @@ public class UserAPI {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return Result.error("UNAUTHENTICATED", "登录已失效，请重新登录");
         }
-        return Result.success(new LoginUserResponse(users.get(0)));
+        return Result.success(new LoginUserResponse(users.get(0), userRoleDAO.findEnabledCodes((Long) userId)));
     }
 
     /** 销毁当前会话，多次退出也返回成功。 */

@@ -33,3 +33,5 @@ button:disabled { opacity: .65; cursor: wait; }
 .success { background: #e5f4e9; color: #205635; }
 .warning { background: #fff1d3; color: #674706; }
 .error { background: #fce8e8; color: #8c292d; }
+nav { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+nav a { color: #24513a; }

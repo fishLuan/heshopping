@@ -1,9 +1,19 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { request, type User } from './api'
+import { applyUserRoutes, router } from './router'
 
 const mode = ref<'login' | 'register'>('login')
 const user = ref<User | null>(null)
+const menu = ref<Awaited<ReturnType<typeof applyUserRoutes>>>([])
+
+/** 登录、恢复会话和退出时同步更新页面入口。 */
+async function syncRoutes(current: User | null) {
+  await router.isReady()
+  menu.value = await applyUserRoutes(current?.roles ?? [])
+}
+
+watch(user, syncRoutes)
 const userName = ref('')
 const password = ref('')
 const confirmation = ref('')
@@ -118,6 +128,10 @@ onMounted(restoreSession)
       <template v-else-if="user">
         <h1 id="heading">你好，{{ user.nickName || user.userName }}</h1>
         <p class="muted">已登录为 {{ user.userName }}</p>
+        <nav v-if="menu.length" aria-label="账号导航">
+          <RouterLink v-for="item in menu" :key="item.name" :to="item.path">{{ item.label }}</RouterLink>
+        </nav>
+        <RouterView :user="user" />
         <button class="primary" :disabled="busy" @click="logout">{{ busy ? '正在退出…' : '退出登录' }}</button>
       </template>
       <template v-else>

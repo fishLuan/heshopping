@@ -10,7 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
+import com.youkeda.hashopping.order.model.Order;
+import com.youkeda.hashopping.order.service.OrderService;
+import org.springframework.http.HttpStatus;
+import com.youkeda.hashopping.common.exception.BusinessException;
+import java.security.Principal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,22 +32,26 @@ public class PaymentApi {
     private PayService payService;
 
     @Autowired
+    private OrderService orderService;
+
+    @Autowired
     private PaymentRecordService paymentRecordService;
 
+    /** 校验当前用户拥有该订单，并使用订单中的金额发起付款。 */
     @PostMapping(path = "/pay")
     @ResponseBody
-    public Result payOrder(@RequestBody PaymentParam paymentParam) {
-        Result result = new Result();
-        result.setSuccess(true);
-        if (StringUtils.isEmpty(paymentParam.getUserId())) {
-            result.setSuccess(false);
-            result.setMessage("userId is null");
-            return result;
+    public Result payOrder(@RequestBody PaymentParam paymentParam, Principal principal) {
+        Order order = orderService.getByOrderNumber(paymentParam.getOrderNumber());
+        if (order == null || !principal.getName().equals(order.getUserId())) {
+            throw new BusinessException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "订单不存在");
         }
-        if (paymentParam.getPayAmount() <= 0) {
-            result.setMessage("支付金额不能小于0");
-            return result;
+        Double amount = order.getTotalPrice();
+        if (amount == null || amount <= 0) {
+            return Result.error("INVALID_ORDER_AMOUNT", "订单金额无效");
         }
+        paymentParam.setUserId(principal.getName());
+        paymentParam.setPayAmount(amount);
+        paymentParam.setTotalAmount(amount);
         PaymentRecord paymentRecord = initPaymentRecord(paymentParam);
         PaymentRecord saveResult = paymentRecordService.save(paymentRecord);
         if (saveResult == null) {

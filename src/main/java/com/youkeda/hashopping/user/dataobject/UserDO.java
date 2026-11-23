@@ -1,10 +1,10 @@
 package com.youkeda.hashopping.user.dataobject;
 
 import com.youkeda.hashopping.user.model.User;
-import com.youkeda.hashopping.user.model.UserRole;
 import com.youkeda.hashopping.user.model.UserStatus;
 
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * 用户登录、身份认证与用户管理：UserDO。
@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 public class UserDO {
 
     private UserStatus status = UserStatus.ACTIVE;
-    private UserRole role = UserRole.CUSTOMER;
     private LocalDateTime lastLoginAt;
 
     public UserStatus getStatus() {
@@ -21,14 +20,6 @@ public class UserDO {
 
     public void setStatus(UserStatus status) {
         this.status = status;
-    }
-
-    public UserRole getRole() {
-        return role;
-    }
-
-    public void setRole(UserRole role) {
-        this.role = role;
     }
 
     public LocalDateTime getLastLoginAt() {
@@ -43,6 +34,7 @@ public class UserDO {
 
     private String userName;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String pwd;
 
     private String nickName;
@@ -124,7 +116,6 @@ public class UserDO {
         user.setGmtCreated(getGmtCreated());
         user.setGmtModified(getGmtModified());
         user.setStatus(getStatus());
-        user.setRole(getRole());
         user.setLastLoginAt(getLastLoginAt());
         return user;
     }

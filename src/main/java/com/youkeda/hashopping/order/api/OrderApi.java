@@ -1,6 +1,7 @@
 package com.youkeda.hashopping.order.api;
 
 import com.youkeda.hashopping.order.model.Order;
+import java.security.Principal;
 import com.youkeda.hashopping.common.model.Paging;
 import com.youkeda.hashopping.common.model.Result;
 import com.youkeda.hashopping.order.param.QueryOrderParam;
@@ -26,7 +27,7 @@ public class OrderApi {
      */
     @PostMapping(path = "/add")
     @ResponseBody
-    public Result<Order> payOrder(@RequestBody Order order) {
+    public Result<Order> payOrder(@RequestBody Order order, Principal principal) {
         Result<Order> result = new Result();
         result.setSuccess(true);
         if (order == null) {
@@ -34,6 +35,7 @@ public class OrderApi {
             result.setMessage("order is null");
             return result;
         }
+        order.setUserId(principal.getName());
         Order orderResult = orderService.add(order);
         result.setData(orderResult);
         return result;
