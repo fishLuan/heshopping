@@ -1,19 +1,44 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { request, type User } from './api'
-import { applyUserRoutes, router } from './router'
+import { applyUserRoutes, clearUserRoutes, router, type UserRoute } from './router'
+import MenuTree from './MenuTree.vue'
 
+const isStorefront = computed(() => router.currentRoute.value.path === '/' || router.currentRoute.value.name === 'product-detail')
 const mode = ref<'login' | 'register'>('login')
 const user = ref<User | null>(null)
-const menu = ref<Awaited<ReturnType<typeof applyUserRoutes>>>([])
+const menu = ref<UserRoute[]>([])
+const routeLoading = ref(false)
+const routeError = ref('')
+const expanded = ref(false)
 
-/** 登录、恢复会话和退出时同步更新页面入口。 */
-async function syncRoutes(current: User | null) {
-  await router.isReady()
-  menu.value = await applyUserRoutes(current?.roles ?? [])
+/** 读取数据库路由，失败时允许重试，不沿用旧授权。 */
+async function loadRoutes() {
+  routeLoading.value = true
+  routeError.value = ''
+  menu.value = []
+  clearUserRoutes()
+  try {
+    const result = await request<UserRoute[]>('routes')
+    if (!result.ok) throw new Error(result.message || '无法读取页面入口')
+    menu.value = result.data ?? []
+    await applyUserRoutes(menu.value)
+  } catch (error) {
+    routeError.value = error instanceof Error ? error.message : '无法读取页面入口'
+  } finally {
+    routeLoading.value = false
+  }
 }
 
-watch(user, syncRoutes)
+/** 接口会话失效时清理用户和路由，返回登录表单。 */
+function sessionExpired() {
+  if (!user.value) return
+  user.value = null
+  menu.value = []
+  clearUserRoutes()
+  notice.value = { level: 'WARNING', text: '登录已失效，请重新登录' }
+}
+
 const userName = ref('')
 const password = ref('')
 const confirmation = ref('')
@@ -33,7 +58,7 @@ function switchMode(next: 'login' | 'register') {
 async function restoreSession() {
   try {
     const result = await request<User>('me')
-    if (result.ok && result.data) user.value = result.data
+    if (result.ok && result.data) { user.value = result.data; await loadRoutes() }
     else if (result.status !== 401) {
       notice.value = { level: 'ERROR', text: result.message || '无法查询登录状态，请稍后重试' }
     }
@@ -85,6 +110,8 @@ async function submit() {
       notice.value = { level: 'SUCCESS', text: '注册成功，请登录' }
     } else if (result.data) {
       user.value = result.data
+      await loadRoutes()
+      if (router.currentRoute.value.path === '/login') await router.replace('/account')
       password.value = ''
     } else {
       notice.value = { level: 'ERROR', text: '登录响应缺少用户资料，请重试' }
@@ -108,6 +135,9 @@ async function logout() {
       return
     }
     user.value = null
+    menu.value = []
+    clearUserRoutes()
+    await router.replace('/')
     switchMode('login')
     notice.value = { level: 'SUCCESS', text: '已退出登录' }
   } catch {
@@ -117,23 +147,41 @@ async function logout() {
   }
 }
 
+window.addEventListener('session-expired', sessionExpired)
 onMounted(restoreSession)
 </script>
 
 <template>
-  <main class="layout">
-    <section class="account" aria-labelledby="heading">
-      <div class="brand"><span class="mark" aria-hidden="true">H</span> Hashopping</div>
-      <p v-if="loading" class="muted" role="status">正在检查登录状态…</p>
-      <template v-else-if="user">
-        <h1 id="heading">你好，{{ user.nickName || user.userName }}</h1>
-        <p class="muted">已登录为 {{ user.userName }}</p>
-        <nav v-if="menu.length" aria-label="账号导航">
-          <RouterLink v-for="item in menu" :key="item.name" :to="item.path">{{ item.label }}</RouterLink>
+  <RouterView v-if="isStorefront" />
+  <div v-else-if="user && !loading" class="workspace">
+    <header class="topbar">
+      <RouterLink to="/" class="brand"><span class="mark" aria-hidden="true">H</span> Hashopping</RouterLink>
+      <div class="user-actions"><span>{{ user.nickName || user.userName }}</span>
+        <button :disabled="busy" @click="logout">{{ busy ? '正在退出…' : '退出登录' }}</button>
+      </div>
+    </header>
+    <div class="workspace-body">
+      <aside class="sidebar">
+        <button class="menu-toggle" :aria-expanded="expanded" @click="expanded = !expanded">导航菜单</button>
+        <nav :class="{ expanded }" aria-label="个人中心导航">
+          <MenuTree :items="menu" />
+          <p v-if="!menu.length && !routeLoading && !routeError" class="muted">暂无可用页面</p>
         </nav>
-        <RouterView :user="user" />
-        <button class="primary" :disabled="busy" @click="logout">{{ busy ? '正在退出…' : '退出登录' }}</button>
-      </template>
+      </aside>
+      <main class="content">
+        <p v-if="routeLoading" role="status">正在加载页面入口…</p>
+        <section v-else-if="routeError" role="alert">
+          <h1>无法加载页面</h1><p>{{ routeError }}</p><button @click="loadRoutes">重新加载</button>
+        </section>
+        <RouterView v-else :user="user" />
+        <p v-if="notice" class="notice" :class="notice.level.toLowerCase()" role="status">{{ notice.text }}</p>
+      </main>
+    </div>
+  </div>
+  <main v-else class="layout">
+    <section class="account" aria-labelledby="heading">
+      <RouterLink to="/" class="brand"><span class="mark" aria-hidden="true">H</span> Hashopping</RouterLink>
+      <p v-if="loading" class="muted" role="status">正在检查登录状态…</p>
       <template v-else>
         <h1 id="heading">{{ mode === 'login' ? '登录账号' : '创建账号' }}</h1>
         <form @submit.prevent="submit">
@@ -146,12 +194,9 @@ onMounted(restoreSession)
             <label for="confirmation">确认密码</label>
             <input id="confirmation" v-model="confirmation" type="password" autocomplete="new-password" required :disabled="busy">
           </template>
-          <button class="primary" type="submit" :disabled="busy">
-            {{ busy ? '正在提交…' : mode === 'login' ? '登录' : '注册' }}
-          </button>
+          <button class="primary" type="submit" :disabled="busy">{{ busy ? '正在提交…' : mode === 'login' ? '登录' : '注册' }}</button>
         </form>
-        <button class="switch" type="button" :disabled="busy"
-          @click="switchMode(mode === 'login' ? 'register' : 'login')">
+        <button class="switch" type="button" :disabled="busy" @click="switchMode(mode === 'login' ? 'register' : 'login')">
           {{ mode === 'login' ? '创建账号' : '返回登录' }}
         </button>
       </template>

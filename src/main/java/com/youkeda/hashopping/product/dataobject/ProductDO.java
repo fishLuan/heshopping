@@ -14,6 +14,32 @@ public class ProductDO {
      */
     private String id;
 
+    /** 商品所属店铺主键。 */
+    private Long shopId;
+
+    /** 查询时关联的店铺名称。 */
+    private String shopName;
+
+    /** 获取商品所属店铺。 */
+    public Long getShopId() {
+        return shopId;
+    }
+
+    /** 设置商品所属店铺，业务层应校验经营权限。 */
+    public void setShopId(Long shopId) {
+        this.shopId = shopId;
+    }
+
+    /** 获取店铺展示名称。 */
+    public String getShopName() {
+        return shopName;
+    }
+
+    /** 设置查询得到的店铺展示名称。 */
+    public void setShopName(String shopName) {
+        this.shopName = shopName;
+    }
+
     /**
      * 商品名称
      */

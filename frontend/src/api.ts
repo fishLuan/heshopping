@@ -3,6 +3,7 @@ export interface User {
   id: number
   roles: string[]
   userName: string
+  lastLoginAt?: string
   nickName?: string
 }
 
@@ -29,6 +30,7 @@ export async function send<T>(path: string, options?: RequestInit) {
     if (cookie) headers.set('X-XSRF-TOKEN', decodeURIComponent(cookie.slice('XSRF-TOKEN='.length)))
   }
   const response = await fetch(path, { ...options, headers, credentials: 'same-origin' })
+  if (response.status === 401) window.dispatchEvent(new Event('session-expired'))
   const result: Result<T> = await response.json().catch(() => {
     throw new Error('服务暂时不可用，请稍后重试')
   })

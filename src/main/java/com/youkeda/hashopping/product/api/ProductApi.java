@@ -3,7 +3,9 @@ package com.youkeda.hashopping.product.api;
 import com.youkeda.hashopping.common.model.Paging;
 import com.youkeda.hashopping.product.model.Product;
 import com.youkeda.hashopping.common.model.Result;
-import com.youkeda.hashopping.common.param.BasePageParam;
+import com.youkeda.hashopping.product.param.ProductPageRequest;
+import com.youkeda.hashopping.product.model.ProductCardResponse;
+import com.youkeda.hashopping.product.service.ProductQueryService;
 import com.youkeda.hashopping.product.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,18 +21,32 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 public class ProductApi {
 
+    private final ProductQueryService queries;
+
     @Autowired
-    private ProductService productService;
+    private ProductService products;
 
+    /** 按主键读取公开商品详情，商品不存在时返回统一的404。 */
+    @GetMapping("/{id}")
     @ResponseBody
-    @GetMapping("/page")
-    public Result<Paging<Product>> pageQuery(BasePageParam param) {
-
-        Result<Paging<Product>> result = new Result<>();
-
-        result.setSuccess(true);
-        result.setData(productService.pageQueryProduct(param));
-        return result;
+    public Result<Product> detail(@org.springframework.web.bind.annotation.PathVariable("id") String id) {
+        Product product = products.get(id);
+        if (product == null) {
+            throw new com.youkeda.hashopping.common.exception.BusinessException(
+                    org.springframework.http.HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "商品不存在");
+        }
+        return Result.success(product);
     }
 
+    /** 注入商城列表查询服务。 */
+    public ProductApi(ProductQueryService queries) {
+        this.queries = queries;
+    }
+
+    /** 游客可访问的商品分页接口，默认每页12条。 */
+    @ResponseBody
+    @GetMapping("/page")
+    public Result<Paging<ProductCardResponse>> pageQuery(ProductPageRequest request) {
+        return Result.success(queries.page(request));
+    }
 }

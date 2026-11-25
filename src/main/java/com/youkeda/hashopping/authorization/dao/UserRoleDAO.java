@@ -1,4 +1,4 @@
-package com.youkeda.hashopping.user.dao;
+package com.youkeda.hashopping.authorization.dao;
 
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -20,3 +20,4 @@ public interface UserRoleDAO {
             "SELECT #{userId}, id FROM `role` WHERE code = 'CUSTOMER' AND enabled = TRUE")
     int assignDefaultRole(@Param("userId") long userId);
 }
+

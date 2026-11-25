@@ -1,10 +1,10 @@
 package com.youkeda.hashopping.user.api;
 
 import com.youkeda.hashopping.user.model.LoginUserResponse;
-import com.youkeda.hashopping.user.dao.UserRoleDAO;
+import com.youkeda.hashopping.authorization.service.AuthorizationService;
 import com.youkeda.hashopping.common.model.Result;
 import com.youkeda.hashopping.user.model.User;
-import com.youkeda.hashopping.user.model.UserStatus;
+import com.youkeda.hashopping.security.context.CurrentUser;
 import com.youkeda.hashopping.user.param.LoginRequest;
 import com.youkeda.hashopping.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,10 @@ public class UserAPI {
     private UserService userService;
 
     @Autowired
-    private UserRoleDAO userRoleDAO;
+    private AuthorizationService userRoleDAO;
+
+    @Autowired
+    private CurrentUser currentUser;
 
     /** 使用用户名和密码注册普通用户。 */
     @PostMapping("/api/user/reg")
@@ -79,27 +82,16 @@ public class UserAPI {
         HttpSession session = request.getSession();
         request.changeSessionId();
         session.setAttribute(SESSION_USER_ID, result.getData().getId());
-        return Result.success("OK", "登录成功", new LoginUserResponse(result.getData(), userRoleDAO.findEnabledCodes(result.getData().getId())));
+        return Result.success("OK", "登录成功", new LoginUserResponse(result.getData(), userRoleDAO.findRoles(result.getData().getId())));
     }
 
     /** 从现有会话读取登录用户，并重新检查账号是否可用。 */
     @GetMapping("/api/user/me")
     public Result<LoginUserResponse> me(HttpServletRequest request, HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-store");
-        HttpSession session = request.getSession(false);
-        Object userId = session == null ? null : session.getAttribute(SESSION_USER_ID);
-        if (!(userId instanceof Long)) {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            return Result.error("UNAUTHENTICATED", "请先登录");
-        }
-
-        List<User> users = userService.queryUser(Collections.singletonList((Long) userId));
-        if (users.isEmpty() || users.get(0).getStatus() != UserStatus.ACTIVE) {
-            session.invalidate();
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            return Result.error("UNAUTHENTICATED", "登录已失效，请重新登录");
-        }
-        return Result.success(new LoginUserResponse(users.get(0), userRoleDAO.findEnabledCodes((Long) userId)));
+        Long userId = currentUser.requireUserId();
+        List<User> users = userService.queryUser(Collections.singletonList(userId));
+        return Result.success(new LoginUserResponse(users.get(0), userRoleDAO.findRoles((Long) userId)));
     }
 
     /** 销毁当前会话，多次退出也返回成功。 */

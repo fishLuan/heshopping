@@ -1,7 +1,7 @@
 package com.youkeda.hashopping.order.api;
 
 import com.youkeda.hashopping.order.model.Order;
-import java.security.Principal;
+import com.youkeda.hashopping.security.context.CurrentUser;
 import com.youkeda.hashopping.common.model.Paging;
 import com.youkeda.hashopping.common.model.Result;
 import com.youkeda.hashopping.order.param.QueryOrderParam;
@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.*;
 public class OrderApi {
 
     @Autowired
+    private CurrentUser currentUser;
+
+    @Autowired
     private OrderService orderService;
 
     /**
@@ -27,7 +30,7 @@ public class OrderApi {
      */
     @PostMapping(path = "/add")
     @ResponseBody
-    public Result<Order> payOrder(@RequestBody Order order, Principal principal) {
+    public Result<Order> payOrder(@RequestBody Order order) {
         Result<Order> result = new Result();
         result.setSuccess(true);
         if (order == null) {
@@ -35,7 +38,7 @@ public class OrderApi {
             result.setMessage("order is null");
             return result;
         }
-        order.setUserId(principal.getName());
+        order.setUserId(String.valueOf(currentUser.requireUserId()));
         Order orderResult = orderService.add(order);
         result.setData(orderResult);
         return result;

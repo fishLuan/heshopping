@@ -4,6 +4,8 @@
     <resultMap id="BaseResultMap" type="com.youkeda.hashopping.product.dataobject.ProductDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="shop_id" property="shopId"/>
+        <result column="shop_name" property="shopName"/>
         <result column="price" jdbcType="DOUBLE" property="price"/>
         <result column="purchase_num" jdbcType="INTEGER" property="purchaseNum"/>
         <result column="product_intro" jdbcType="VARCHAR" property="productIntro"/>
@@ -17,10 +19,10 @@
   </delete>
 
     <insert id="insert" parameterType="com.youkeda.hashopping.product.dataobject.ProductDO">
-    insert into product (id, name, price, 
+    insert into product (id, name, price, shop_id,
       purchase_num, product_intro,product_imgs, gmt_created,
       gmt_modified)
-    values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{price,jdbcType=DOUBLE}, 
+    values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{price,jdbcType=DOUBLE}, #{shopId},
       #{purchaseNum,jdbcType=INTEGER}, #{productIntro,jdbcType=VARCHAR},#{productImgs,jdbcType=VARCHAR}, now(),now())
   </insert>
 
@@ -51,13 +53,13 @@
     </update>
 
     <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select id, name, price, purchase_num, product_intro,product_imgs,
+    select id, name, price, purchase_num, product_intro,product_imgs, shop_id, (SELECT s.name FROM shop s WHERE s.id=product.shop_id) AS shop_name,
     gmt_created, gmt_modified
     from product
     where id = #{id,jdbcType=VARCHAR}
   </select>
     <select id="selectAll" resultMap="BaseResultMap">
-    select id, name, price, purchase_num, product_intro,product_imgs,
+    select id, name, price, purchase_num, product_intro,product_imgs, shop_id, (SELECT s.name FROM shop s WHERE s.id=product.shop_id) AS shop_name,
     gmt_created, gmt_modified
     from product
   </select>
@@ -68,11 +70,43 @@
   </select>
 
     <select id="pageQuery" resultMap="BaseResultMap">
-        select id, name, price, purchase_num, product_intro,product_imgs,
+        select id, name, price, purchase_num, product_intro,product_imgs, shop_id, (SELECT s.name FROM shop s WHERE s.id=product.shop_id) AS shop_name,
         gmt_created, gmt_modified
         from product
         <bind name="currentIndex" value="pagination * pageSize"/>
         limit #{currentIndex},#{pageSize}
     </select>
 
+    <!-- 仅展示营业店铺中存在可售规格的商品，价格与SKU实际可售价格一致。 -->
+    <sql id="cardSource">
+        FROM product p JOIN shop s ON s.id=p.shop_id AND s.status='ACTIVE'
+        JOIN (
+            SELECT product_id, MIN(price) AS min_price
+            FROM product_detail WHERE stock &gt; 0 AND price &gt; 0 GROUP BY product_id
+        ) sku ON sku.product_id=p.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                LOCATE(#{keyword}, p.name) &gt; 0
+            </if>
+        </where>
+    </sql>
+
+    <select id="countCards" resultType="long">
+        SELECT COUNT(*) <include refid="cardSource"/>
+    </select>
+
+    <select id="findCards" resultType="com.youkeda.hashopping.product.model.ProductCardResponse">
+        SELECT p.id,p.name,
+            COALESCE(NULLIF(TRIM(SUBSTRING_INDEX(p.product_imgs,',',1)),''),'/images/default-product.png') AS mainImage,
+            CAST(sku.min_price AS DECIMAL(18,2)) AS price,p.purchase_num AS purchaseNum,
+            p.shop_id AS shopId,s.name AS shopName
+        <include refid="cardSource"/>
+        ORDER BY
+        <choose>
+            <when test="sort == 'priceAsc'">sku.min_price ASC,</when>
+            <when test="sort == 'priceDesc'">sku.min_price DESC,</when>
+        </choose>
+        p.gmt_created DESC,p.id DESC
+        LIMIT #{offset},#{pageSize}
+    </select>
 </mapper>

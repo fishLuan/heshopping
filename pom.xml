@@ -18,6 +18,11 @@
     </properties>
 
     <dependencies>
+        <!-- 将 Servlet Session 交给 Spring Session，统一存储到 Redis。 -->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>

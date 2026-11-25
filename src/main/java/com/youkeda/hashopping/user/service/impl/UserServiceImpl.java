@@ -1,7 +1,7 @@
 package com.youkeda.hashopping.user.service.impl;
 
 import com.youkeda.hashopping.user.dao.UserDAO;
-import com.youkeda.hashopping.user.dao.UserRoleDAO;
+import com.youkeda.hashopping.authorization.service.AuthorizationService;
 import org.springframework.transaction.annotation.Transactional;
 import com.youkeda.hashopping.user.dataobject.UserDO;
 import com.youkeda.hashopping.common.model.Result;
@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService {
     private UserDAO userDAO;
 
     @Autowired
-    private UserRoleDAO userRoleDAO;
+    private AuthorizationService userRoleDAO;
 
     @Autowired
     private LoginAttemptGuard loginAttemptGuard;

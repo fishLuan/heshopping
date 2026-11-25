@@ -14,7 +14,7 @@ import com.youkeda.hashopping.order.model.Order;
 import com.youkeda.hashopping.order.service.OrderService;
 import org.springframework.http.HttpStatus;
 import com.youkeda.hashopping.common.exception.BusinessException;
-import java.security.Principal;
+import com.youkeda.hashopping.security.context.CurrentUser;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +26,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * 支付处理与支付记录管理：PaymentApi。
  */
 public class PaymentApi {
+    @Autowired
+    private CurrentUser currentUser;
+
     private static final Logger logger = LoggerFactory.getLogger(PaymentApi.class);
 
     @Autowired
@@ -40,16 +43,16 @@ public class PaymentApi {
     /** 校验当前用户拥有该订单，并使用订单中的金额发起付款。 */
     @PostMapping(path = "/pay")
     @ResponseBody
-    public Result payOrder(@RequestBody PaymentParam paymentParam, Principal principal) {
+    public Result payOrder(@RequestBody PaymentParam paymentParam) {
         Order order = orderService.getByOrderNumber(paymentParam.getOrderNumber());
-        if (order == null || !principal.getName().equals(order.getUserId())) {
+        if (order == null || !String.valueOf(currentUser.requireUserId()).equals(order.getUserId())) {
             throw new BusinessException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "订单不存在");
         }
         Double amount = order.getTotalPrice();
         if (amount == null || amount <= 0) {
             return Result.error("INVALID_ORDER_AMOUNT", "订单金额无效");
         }
-        paymentParam.setUserId(principal.getName());
+        paymentParam.setUserId(String.valueOf(currentUser.requireUserId()));
         paymentParam.setPayAmount(amount);
         paymentParam.setTotalAmount(amount);
         PaymentRecord paymentRecord = initPaymentRecord(paymentParam);
