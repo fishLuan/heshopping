@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youkeda.hashopping.product.dao.ProductSalesDAO">
+    <update id="increase">
+        UPDATE product p JOIN product_detail d ON d.product_id=p.id
+        SET p.purchase_num=p.purchase_num+#{quantity},p.gmt_modified=NOW()
+        WHERE d.id=#{skuId}
+    </update>
+</mapper>

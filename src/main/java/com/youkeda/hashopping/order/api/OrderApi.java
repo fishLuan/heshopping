@@ -21,29 +21,29 @@ public class OrderApi {
     private CurrentUser currentUser;
 
     @Autowired
-    private OrderService orderService;
+    private com.youkeda.hashopping.order.service.OrderCloseService closer;
 
-    /**
-     * 生成订单Api
-     *
-     * @return Result
-     */
-    @PostMapping(path = "/add")
+    /** 取消当前登录用户的待付款订单。 */
+    @PostMapping("/{orderNumber}/cancel")
     @ResponseBody
-    public Result<Order> payOrder(@RequestBody Order order) {
-        Result<Order> result = new Result();
-        result.setSuccess(true);
-        if (order == null) {
-            result.setSuccess(false);
-            result.setMessage("order is null");
-            return result;
-        }
-        order.setUserId(String.valueOf(currentUser.requireUserId()));
-        Order orderResult = orderService.add(order);
-        result.setData(orderResult);
-        return result;
+    public Result<Void> cancel(@PathVariable("orderNumber") String orderNumber) {
+        closer.cancel(currentUser.requireUserId(), orderNumber);
+        return Result.success("OK", "订单已取消", null);
     }
 
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private com.youkeda.hashopping.order.service.OrderCreationService creation;
+
+    /** 使用当前会话的买家身份创建单SKU订单。 */
+    @PostMapping("/add")
+    @ResponseBody
+    public Result<com.youkeda.hashopping.order.model.CreateOrderResponse> create(
+            @RequestBody com.youkeda.hashopping.order.param.CreateOrderRequest request) {
+        return Result.success(creation.create(currentUser.requireUserId(), request));
+    }
     /**
      * 查询支付成功订单APi
      *

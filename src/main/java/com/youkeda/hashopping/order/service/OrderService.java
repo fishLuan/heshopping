@@ -41,10 +41,4 @@ public interface OrderService {
      */
     Order updateOrderStatus(String orderNumber, OrderStatus orderStatus);
 
-    /**
-     * 更新
-     * @param orderNumber
-     * @return
-     */
-    Order updateProductPersonNumber(String orderNumber);
 }

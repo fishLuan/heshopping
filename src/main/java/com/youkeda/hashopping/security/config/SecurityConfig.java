@@ -48,7 +48,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/user/del", "/user/batchAdd").denyAll()
                 .antMatchers(HttpMethod.POST, "/user").denyAll()
                 .antMatchers("/users", "/user", "/user/**", "/api/order/queryrecentpaysuccess").hasAuthority("ADMIN")
-                .antMatchers("/api/user/me", "/api/user/routes", "/api/order/**", "/api/alipay/**").authenticated()
+                .antMatchers("/api/user/me", "/api/user/routes", "/api/order/**", "/api/alipay/**", "/api/payment/mock/**", "/api/addresses", "/api/addresses/**", "/api/cart", "/api/cart/**").authenticated()
                 .antMatchers("/api/user/login", "/api/user/reg", "/api/user/me", "/api/user/logout",
                         "/api/product/**", "/api/productdetail/**", "/controller/pay/**",
                         "/", "/index.html", "/assets/**", "/error").permitAll()

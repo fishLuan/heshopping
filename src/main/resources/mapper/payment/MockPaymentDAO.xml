@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youkeda.hashopping.payment.dao.MockPaymentDAO">
+    <insert id="insert">
+        INSERT INTO ykd_payment_record(id,user_id,order_number,channel_payment_id,channel_type,
+            amount,pay_type,pay_status,extend_str,pay_end_time,gmt_created,gmt_modified)
+        VALUES(#{id},#{userId},#{number},#{id},'MOCK',#{amount},'MOCK',#{status},
+            '开发模拟支付',DATE_FORMAT(NOW(),'%Y-%m-%d %H:%i:%s'),NOW(),NOW())
+    </insert>
+</mapper>

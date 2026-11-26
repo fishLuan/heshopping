@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youkeda.hashopping.order.dao.OrderCloseDAO">
+    <select id="lock" resultType="com.youkeda.hashopping.order.model.OrderCloseRecord">
+        SELECT id,user_id userId,product_detail_id skuId,quantity,request_id requestId,status,
+               COALESCE(expires_at &lt;= NOW(),FALSE) expired
+        FROM `order` WHERE order_number=#{orderNumber} FOR UPDATE
+    </select>
+    <update id="close">
+        UPDATE `order` SET status=#{status},gmt_modified=NOW()
+        WHERE id=#{id} AND status='WAIT_BUYER_PAY'
+    </update>
+    <select id="findExpired" resultType="java.lang.String">
+        SELECT order_number FROM `order`
+        WHERE status='WAIT_BUYER_PAY' AND expires_at &lt;= NOW() AND request_id IS NOT NULL
+        ORDER BY expires_at,id LIMIT 100
+    </select>
+</mapper>

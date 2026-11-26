@@ -15,6 +15,9 @@ public enum  OrderStatus {
      */
     TRADE_CLOSED,
 
+    /** 用户主动取消。 */
+    TRADE_CANCELLED,
+
     /**
      * 订单已支付成功
      */

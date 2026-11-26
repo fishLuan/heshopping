@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Hashopping 本地开发" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.youkeda.hashopping.Application" />
+    <option name="PROGRAM_PARAMETERS" value="--spring.profiles.active=dev" />
+    <module name="hashopping" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

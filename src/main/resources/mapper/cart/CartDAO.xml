@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youkeda.hashopping.cart.dao.CartDAO">
+ <sql id="columns">id,sku_id skuId,quantity</sql>
+ <select id="list" resultType="com.youkeda.hashopping.cart.model.CartItem">
+  SELECT <include refid="columns"/> FROM cart_item WHERE user_id=#{userId} ORDER BY gmt_modified DESC,id DESC
+ </select>
+ <select id="find" resultType="com.youkeda.hashopping.cart.model.CartItem">
+  SELECT <include refid="columns"/> FROM cart_item WHERE user_id=#{userId} AND id=#{id}
+ </select>
+ <select id="findSku" resultType="com.youkeda.hashopping.cart.model.CartItem">
+  SELECT <include refid="columns"/> FROM cart_item WHERE user_id=#{userId} AND sku_id=#{skuId}
+ </select>
+ <insert id="insert">
+  INSERT INTO cart_item(user_id,sku_id,quantity) VALUES(#{userId},#{skuId},#{quantity})
+ </insert>
+ <update id="update">
+  UPDATE cart_item SET quantity=#{quantity} WHERE user_id=#{userId} AND id=#{id}
+ </update>
+ <delete id="delete">DELETE FROM cart_item WHERE user_id=#{userId} AND id=#{id}</delete>
+</mapper>

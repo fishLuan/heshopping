@@ -1,7 +1,6 @@
 package com.youkeda.hashopping.order.service.impl;
 
 import com.youkeda.hashopping.user.model.User;
-import com.youkeda.hashopping.product.model.Product;
 import com.youkeda.hashopping.product.model.ProductDetail;
 import com.youkeda.hashopping.order.model.Order;
 import com.youkeda.hashopping.order.model.OrderStatus;
@@ -12,15 +11,11 @@ import com.youkeda.hashopping.order.dataobject.OrderDO;
 import com.youkeda.hashopping.order.param.QueryOrderParam;
 import com.youkeda.hashopping.order.service.OrderService;
 import com.youkeda.hashopping.product.service.ProductDetailService;
-import com.youkeda.hashopping.product.service.ProductService;
 import com.youkeda.hashopping.user.service.UserService;
 import com.youkeda.hashopping.common.util.UUIDUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RAtomicLong;
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +32,6 @@ import java.util.stream.Collectors;
  * 订单管理：OrderServiceImpl。
  */
 public class OrderServiceImpl implements OrderService {
-    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
     @Autowired
     private RedissonClient redisson;
     @Autowired
@@ -46,8 +40,6 @@ public class OrderServiceImpl implements OrderService {
     private ProductDetailService productDetailService;
     @Autowired
     private UserService userService;
-    @Autowired
-    private ProductService productService;
 
     @Override
     public Order add(Order order) {
@@ -89,33 +81,6 @@ public class OrderServiceImpl implements OrderService {
         }
         orderDO.setStatus(orderStatus.toString());
         orderDAO.update(orderDO);
-        return orderDO.convertToModel();
-    }
-
-    @Override
-    public Order updateProductPersonNumber(String orderNumber) {
-        OrderDO orderDO = orderDAO.selectByOrderNumber(orderNumber);
-        if (orderDO == null) {
-            return null;
-        }
-        //获取分布式锁
-        RLock transferLock = redisson.getLock("hashopping_dict:PURCHASE");
-        transferLock.lock();
-        try {
-            ProductDetail productDetail = productDetailService.get(orderDO.getProductDetailId());
-            if (productDetail == null) {
-                return null;
-            }
-            productDetail.setStock(productDetail.getStock() - 1);
-            productDetailService.save(productDetail);
-            Product product = productService.get(productDetail.getProductId());
-            product.setPurchaseNum(product.getPurchaseNum() + 1);
-            productService.save(product);
-        } catch (Exception e) {
-            logger.error("", e);
-        } finally {
-            transferLock.unlock();
-        }
         return orderDO.convertToModel();
     }
 

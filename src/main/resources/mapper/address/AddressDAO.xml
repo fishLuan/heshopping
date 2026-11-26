@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youkeda.hashopping.address.dao.AddressDAO">
+ <sql id="columns">id,recipient_name recipientName,recipient_phone recipientPhone,
+ province,city,district,detail_address detailAddress,is_default isDefault</sql>
+ <select id="list" resultType="com.youkeda.hashopping.address.model.AddressResponse">
+  SELECT <include refid="columns"/> FROM user_address WHERE user_id=#{userId} ORDER BY is_default DESC,id DESC
+ </select>
+ <select id="find" resultType="com.youkeda.hashopping.address.model.AddressResponse">
+  SELECT <include refid="columns"/> FROM user_address WHERE user_id=#{userId} AND id=#{id}
+ </select>
+ <update id="clearDefault">
+  UPDATE user_address SET is_default=FALSE WHERE user_id=#{userId} AND is_default=TRUE
+ </update>
+ <insert id="insert" useGeneratedKeys="true" keyProperty="address.id">
+  INSERT INTO user_address(user_id,recipient_name,recipient_phone,province,city,district,detail_address,is_default)
+  VALUES(#{userId},#{address.recipientName},#{address.recipientPhone},#{address.province},#{address.city},
+   #{address.district},#{address.detailAddress},#{address.isDefault})
+ </insert>
+ <update id="update">
+  UPDATE user_address SET recipient_name=#{address.recipientName},recipient_phone=#{address.recipientPhone},
+   province=#{address.province},city=#{address.city},district=#{address.district},
+   detail_address=#{address.detailAddress},is_default=#{address.isDefault}
+  WHERE user_id=#{userId} AND id=#{address.id}
+ </update>
+ <delete id="delete">DELETE FROM user_address WHERE user_id=#{userId} AND id=#{id}</delete>
+ <update id="setDefault">UPDATE user_address SET is_default=TRUE WHERE user_id=#{userId} AND id=#{id}</update>
+</mapper>

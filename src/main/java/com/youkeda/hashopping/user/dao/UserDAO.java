@@ -12,6 +12,8 @@ import java.util.List;
  * 用户登录、身份认证与用户管理：UserDAO。
  */
 public interface UserDAO {
+    /** 锁定有效买家，串行化同一买家的并发下单。 */
+    Long lockActiveBuyer(@Param("id") long id);
 
     int batchAdd(@Param("list") List<UserDO> userDOs);
 

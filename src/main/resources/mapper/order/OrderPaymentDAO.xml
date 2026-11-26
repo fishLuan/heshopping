@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youkeda.hashopping.order.dao.OrderPaymentDAO">
+    <select id="lock" resultType="com.youkeda.hashopping.order.model.CreateOrderResponse">
+        SELECT id,order_number orderNumber,user_id userId,product_detail_id skuId,quantity,
+               total_price totalPrice,status,request_id requestId,expires_at expiresAt
+        FROM `order` WHERE order_number=#{number} FOR UPDATE
+    </select>
+    <select id="expired" resultType="boolean">
+        SELECT COALESCE(expires_at &lt;= NOW(),TRUE) FROM `order` WHERE id=#{id}
+    </select>
+    <update id="markPaid">
+        UPDATE `order` SET status='TRADE_PAID_SUCCESS',gmt_modified=NOW()
+        WHERE id=#{id} AND status='WAIT_BUYER_PAY' AND expires_at &gt; NOW()
+    </update>
+</mapper>

@@ -7,6 +7,7 @@
         <result column="product_detail_id" jdbcType="VARCHAR" property="productDetailId"/>
         <result column="user_id" jdbcType="VARCHAR" property="userId"/>
         <result column="total_price" jdbcType="DOUBLE" property="totalPrice"/>
+        <result column="request_id" property="requestId"/>
         <result column="status" jdbcType="VARCHAR" property="status"/>
         <result column="gmt_created" jdbcType="TIMESTAMP" property="gmtCreated"/>
         <result column="gmt_modified" jdbcType="TIMESTAMP" property="gmtModified"/>
@@ -52,7 +53,7 @@
     </update>
 
     <select id="selectByOrderNumber" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select id, user_id, order_number, product_detail_id,  total_price, status,
+    select request_id, id, user_id, order_number, product_detail_id,  total_price, status,
       gmt_created, gmt_modified
     from `order`
     where order_number = #{orderNumber,jdbcType=VARCHAR}
@@ -72,7 +73,7 @@
     </select>
 
     <select id="pageQuery" resultMap="BaseResultMap" parameterType="com.youkeda.hashopping.order.param.QueryOrderParam">
-        select id, user_id, order_number, product_detail_id, total_price, status,
+        select request_id, id, user_id, order_number, product_detail_id, total_price, status,
         gmt_created, gmt_modified
         from `order`
         <where>

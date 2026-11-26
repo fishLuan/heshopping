@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youkeda.hashopping.order.dao.OrderCreationDAO">
+    <!-- find：与DAO方法对应的数据库操作。 -->
+    <select id="find" resultType="com.youkeda.hashopping.order.model.CreateOrderResponse">
+        SELECT address_id addressId,recipient_name recipientName,recipient_phone recipientPhone,shipping_address shippingAddress,id,order_number orderNumber,user_id userId,product_detail_id skuId,quantity,unit_price unitPrice,total_price totalPrice,shop_id shopId,product_name productName,sku_snapshot skuSnapshot,request_id requestId,status,expires_at expiresAt
+        FROM `order`
+        WHERE user_id=#{userId} AND request_id=#{requestId} FOR UPDATE
+    </select>
+
+    <!-- insert：与DAO方法对应的数据库操作。 -->
+    <insert id="insert">
+        INSERT INTO `order`(address_id,recipient_name,recipient_phone,shipping_address,id,order_number,user_id,product_detail_id,quantity,unit_price,total_price,shop_id,product_name,sku_snapshot,request_id,status,expires_at,gmt_created,gmt_modified) VALUES(#{addressId},#{recipientName},#{recipientPhone},#{shippingAddress},#{id},#{orderNumber},#{userId},#{skuId},#{quantity},#{unitPrice},#{totalPrice},#{shopId},#{productName},#{skuSnapshot},#{requestId},#{status},DATE_ADD(NOW(),INTERVAL #{timeoutMinutes} MINUTE),NOW(),NOW())
+    </insert>
+</mapper>

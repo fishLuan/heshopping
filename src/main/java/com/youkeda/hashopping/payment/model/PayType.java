@@ -8,6 +8,8 @@ package com.youkeda.hashopping.payment.model;
  * 支付处理与支付记录管理：PayType。
  */
 public enum PayType {
+    /** 开发测试模拟渠道。 */
+    MOCK,
     /**
      * 微信
      */

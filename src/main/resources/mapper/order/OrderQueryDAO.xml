@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youkeda.hashopping.order.dao.OrderQueryDAO">
+    <sql id="columns">
+        address_id addressId,recipient_name recipientName,recipient_phone recipientPhone,shipping_address shippingAddress,id,order_number orderNumber,user_id userId,product_detail_id skuId,quantity,
+        unit_price unitPrice,total_price totalPrice,shop_id shopId,product_name productName,
+        sku_snapshot skuSnapshot,request_id requestId,status,expires_at expiresAt,
+        gmt_created createdAt
+    </sql>
+    <sql id="filter">
+        WHERE user_id=#{userId}
+        <if test="status != null">AND status=#{status}</if>
+    </sql>
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM `order` <include refid="filter"/>
+    </select>
+    <select id="page" resultType="com.youkeda.hashopping.order.model.CreateOrderResponse">
+        SELECT <include refid="columns"/> FROM `order` <include refid="filter"/>
+        ORDER BY gmt_created DESC,id DESC LIMIT #{offset},12
+    </select>
+    <select id="detail" resultType="com.youkeda.hashopping.order.model.CreateOrderResponse">
+        SELECT <include refid="columns"/> FROM `order` WHERE user_id=#{userId} AND order_number=#{number}
+    </select>
+</mapper>

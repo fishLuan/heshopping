@@ -111,7 +111,11 @@ async function submit() {
     } else if (result.data) {
       user.value = result.data
       await loadRoutes()
-      if (router.currentRoute.value.path === '/login') await router.replace('/account')
+      if (router.currentRoute.value.path === '/login') {
+        const redirect = router.currentRoute.value.query.redirect
+        const target = typeof redirect === 'string' && redirect.startsWith('/products/') ? redirect : '/account'
+        await router.replace(target)
+      }
       password.value = ''
     } else {
       notice.value = { level: 'ERROR', text: '登录响应缺少用户资料，请重试' }
@@ -155,7 +159,9 @@ onMounted(restoreSession)
   <RouterView v-if="isStorefront" />
   <div v-else-if="user && !loading" class="workspace">
     <header class="topbar">
-      <RouterLink to="/" class="brand"><span class="mark" aria-hidden="true">H</span> Hashopping</RouterLink>
+      <RouterLink to="/" class="brand storefront-brand" aria-label="Hashopping 首页">
+        <img class="storefront-logo" src="/images/hashopping-logo-green.png" alt="Hashopping" width="280" height="56">
+      </RouterLink>
       <div class="user-actions"><span>{{ user.nickName || user.userName }}</span>
         <button :disabled="busy" @click="logout">{{ busy ? '正在退出…' : '退出登录' }}</button>
       </div>

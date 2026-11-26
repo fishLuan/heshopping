@@ -18,6 +18,12 @@ public class OrderDO {
      */
 
     private String id;
+    private String requestId;
+
+    /** 获取新下单流程的幂等标识，历史订单为空。 */
+    public String getRequestId() { return requestId; }
+    /** 设置新下单流程的幂等标识。 */
+    public void setRequestId(String requestId) { this.requestId = requestId; }
 
     /**
      * 订单编号

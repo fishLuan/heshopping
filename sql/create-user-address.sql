@@ -1,0 +1,18 @@
+CREATE TABLE user_address (
+ id BIGINT NOT NULL AUTO_INCREMENT COMMENT '地址主键',
+ user_id BIGINT NOT NULL COMMENT '所属用户',
+ recipient_name VARCHAR(50) NOT NULL COMMENT '收货人姓名',
+ recipient_phone VARCHAR(32) NOT NULL COMMENT '收货联系电话',
+ province VARCHAR(50) NOT NULL COMMENT '省',
+ city VARCHAR(50) NOT NULL COMMENT '市',
+ district VARCHAR(50) NOT NULL COMMENT '区县',
+ detail_address VARCHAR(255) NOT NULL COMMENT '详细地址',
+ is_default BOOLEAN NOT NULL DEFAULT FALSE COMMENT '是否默认地址',
+ default_user_id BIGINT GENERATED ALWAYS AS (CASE WHEN is_default THEN user_id ELSE NULL END) STORED,
+ gmt_created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ gmt_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+ PRIMARY KEY(id),
+ KEY idx_address_user(user_id,id),
+ UNIQUE KEY uk_address_default(default_user_id),
+ CONSTRAINT fk_address_user FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户收货地址';

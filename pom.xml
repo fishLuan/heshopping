@@ -96,6 +96,10 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.youkeda.hashopping.Application</mainClass>
+                    <!-- Maven本地启动自动使用开发环境；打包后的jar仍需明确选择环境。 -->
+                    <profiles>
+                        <profile>dev</profile>
+                    </profiles>
                 </configuration>
             </plugin>
             <plugin>

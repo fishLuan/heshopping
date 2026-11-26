@@ -90,4 +90,11 @@
         </where>
     </select>
 
+
+    <!-- lockActiveBuyer：与DAO方法对应的数据库操作。 -->
+    <select id="lockActiveBuyer" resultType="java.lang.Long">
+        SELECT id
+        FROM user
+        WHERE id=#{id} AND status='ACTIVE' FOR UPDATE
+    </select>
 </mapper>

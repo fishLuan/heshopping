@@ -67,11 +67,6 @@ class YkdTest {
             return;
         }
 
-        Order updateOrder = orderService.updateProductPersonNumber(order.getOrderNumber());
-        if (updateOrder == null) {
-            error("插入商品付款人数失败！");
-            return;
-        }
     }
 
 }

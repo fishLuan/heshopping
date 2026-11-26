@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youkeda.hashopping.product.dao.StockDAO">
+    <!-- lockSku：与DAO方法对应的数据库操作。 -->
+    <select id="lockSku" resultType="com.youkeda.hashopping.product.model.PurchasableSku">
+        SELECT d.id,CAST(d.price AS DECIMAL(18,2)) price,d.stock,p.shop_id shopId,p.name productName,CONCAT('尺码：',d.size) skuSnapshot
+        FROM product_detail d
+        JOIN product p ON p.id=d.product_id
+        JOIN shop s ON s.id=p.shop_id
+        WHERE d.id=#{id} AND s.status='ACTIVE' FOR UPDATE
+    </select>
+
+    <!-- reserve：与DAO方法对应的数据库操作。 -->
+    <update id="reserve">
+        UPDATE product_detail
+        SET stock=stock-#{quantity},gmt_modified=NOW()
+        WHERE id=#{id} AND stock&gt;=#{quantity}
+    </update>
+    <!-- 归还预占数量，不依赖店铺是否仍在营业。 -->
+    <update id="release">
+        UPDATE product_detail SET stock=stock+#{quantity},gmt_modified=NOW() WHERE id=#{id}
+    </update>
+</mapper>

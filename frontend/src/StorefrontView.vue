@@ -109,8 +109,10 @@ onUnmounted(() => {
 
 <template>
   <div class="storefront">
-    <header class="store-header">
-      <RouterLink to="/" class="brand"><span class="mark" aria-hidden="true">H</span> Hashopping</RouterLink>
+    <header class="store-header storefront-header">
+      <RouterLink to="/" class="brand storefront-brand" aria-label="Hashopping 首页">
+        <img class="storefront-logo" src="/images/hashopping-logo-green.png" alt="Hashopping" width="280" height="56">
+      </RouterLink>
       <RouterLink to="/account" class="account-link">个人中心</RouterLink>
     </header>
     <main class="store-main">
