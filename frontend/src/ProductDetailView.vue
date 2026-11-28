@@ -14,6 +14,7 @@ interface Product {
 /** 可选择的尺码规格。 */
 interface Sku {
   id: string
+  style?: string | null
   size: number
   price: number
   stock: number
@@ -175,6 +176,27 @@ async function goLogin() {
 const product = ref<Product | null>(null)
 const skus = ref<Sku[]>([])
 const selected = ref<Sku | null>(null)
+const activeStyle = ref('')
+const styleOf = (sku: Sku) => sku.style?.trim() || ''
+const styles = computed(() => [...new Set(skus.value.map(styleOf))])
+const hasStyles = computed(() => styles.value.some(Boolean))
+const visibleSkus = computed(() => hasStyles.value
+  ? skus.value.filter(sku => styleOf(sku) === activeStyle.value)
+  : skus.value)
+const available = (sku: Sku) => sku.stock > 0 && sku.price > 0
+
+/** 切换款式时优先保留尺码，否则选择该款式首个可售尺码。 */
+function selectStyle(style: string) {
+  const size = selected.value?.size
+  activeStyle.value = style
+  selectSku(visibleSkus.value.find(sku => sku.size === size && available(sku))
+    ?? visibleSkus.value.find(available) ?? null)
+}
+function selectSku(sku: Sku | null) {
+  selected.value = sku
+  quantity.value = sku ? Math.min(Math.max(1, Number.isInteger(quantity.value) ? quantity.value : 1), sku.stock) : 1
+  orderError.value = ''
+}
 const activeImage = ref('')
 const loading = ref(false)
 const error = ref('')
@@ -193,6 +215,7 @@ async function load() {
   loading.value = true
   error.value = ''
   selected.value = null
+  activeStyle.value = ''
   order.value = null
   orderError.value = ''
   quantity.value = 1
@@ -212,6 +235,7 @@ async function load() {
     activeImage.value = images.value[0] || '/images/default-product.png'
     const restored = skus.value.find(s => s.id === route.query.sku && s.stock > 0 && s.price > 0)
     selected.value = restored ?? skus.value.find(s => s.stock > 0 && s.price > 0) ?? null
+    activeStyle.value = styleOf(selected.value ?? skus.value[0] ?? { id: '', size: 0, price: 0, stock: 0 })
     if (restored) {
       const count = Number(route.query.quantity)
       quantity.value = Number.isInteger(count) && count > 0 ? Math.min(count, restored.stock) : 1
@@ -271,9 +295,15 @@ onUnmounted(() => controller?.abort())
             <template v-else-if="minimumPrice !== null">¥{{ minimumPrice.toFixed(2) }} 起</template>
             <template v-else>暂时缺货</template>
           </p>
+          <fieldset v-if="hasStyles" class="sku-field"><legend>选择款式</legend>
+            <button v-for="style in styles" :key="style" :disabled="submitting || preparing || !!order || !skus.some(sku => styleOf(sku) === style && available(sku))"
+              :aria-pressed="activeStyle === style" @click="selectStyle(style)">
+              {{ style || '默认款式' }}
+            </button>
+          </fieldset>
           <fieldset class="sku-field"><legend>选择尺码</legend>
-            <button v-for="sku in skus" :key="sku.id" :disabled="submitting || !!order || sku.stock <= 0 || sku.price <= 0"
-              :aria-pressed="selected?.id === sku.id" @click="selected=sku">
+            <button v-for="sku in visibleSkus" :key="sku.id" :disabled="submitting || preparing || !!order || sku.stock <= 0 || sku.price <= 0"
+              :aria-pressed="selected?.id === sku.id" @click="selectSku(sku)">
               {{ sku.size }}{{ sku.stock <= 0 ? ' · 缺货' : '' }}
             </button>
           </fieldset>

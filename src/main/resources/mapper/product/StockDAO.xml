@@ -3,7 +3,7 @@
 <mapper namespace="com.youkeda.hashopping.product.dao.StockDAO">
     <!-- lockSku：与DAO方法对应的数据库操作。 -->
     <select id="lockSku" resultType="com.youkeda.hashopping.product.model.PurchasableSku">
-        SELECT d.id,CAST(d.price AS DECIMAL(18,2)) price,d.stock,p.shop_id shopId,p.name productName,CONCAT('尺码：',d.size) skuSnapshot
+        SELECT d.id,CAST(d.price AS DECIMAL(18,2)) price,d.stock,p.shop_id shopId,p.name productName,CONCAT('款式：',d.style,'，尺码：',d.size) skuSnapshot
         FROM product_detail d
         JOIN product p ON p.id=d.product_id
         JOIN shop s ON s.id=p.shop_id

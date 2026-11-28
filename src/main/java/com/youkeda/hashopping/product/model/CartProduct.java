@@ -8,6 +8,8 @@ public class CartProduct {
     public String productId;
     public String name;
     public String image;
+    /** 当前规格的商家自定义款式。 */
+    public String style;
     public String size;
     public BigDecimal price;
     public Integer stock;

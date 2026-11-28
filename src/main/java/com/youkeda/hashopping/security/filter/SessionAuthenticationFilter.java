@@ -33,7 +33,7 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         return !(path.equals("/users") || path.equals("/user") || path.startsWith("/user/")
-                || (path.equals("/api/user/me") || path.equals("/api/user/routes")) || path.startsWith("/api/order/") || path.startsWith("/api/alipay/") || path.startsWith("/api/payment/mock/") || path.equals("/api/addresses") || path.startsWith("/api/addresses/") || path.equals("/api/cart") || path.startsWith("/api/cart/"));
+                || (path.equals("/api/user/me") || path.equals("/api/user/routes")) || path.startsWith("/api/order/") || path.startsWith("/api/alipay/") || path.startsWith("/api/payment/mock/") || path.equals("/api/addresses") || path.startsWith("/api/addresses/") || path.equals("/api/cart") || path.startsWith("/api/cart/") || path.startsWith("/api/merchant/"));
     }
 
     /** 从服务端会话读取用户 ID，并为当前请求创建认证对象。 */
@@ -47,7 +47,7 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
             if (!matches.isEmpty() && matches.get(0).getStatus() == UserStatus.ACTIVE) {
                 SecurityContextHolder.getContext().setAuthentication(
                         new UsernamePasswordAuthenticationToken(id, null,
-                                roles.findRoles((Long) id).stream()
+                                java.util.stream.Stream.concat(roles.findRoles((Long) id).stream(), roles.findPermissions((Long) id).stream()).distinct()
                                         .map(SimpleGrantedAuthority::new).collect(Collectors.toList())));
             } else {
                 session.invalidate();

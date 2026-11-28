@@ -37,10 +37,20 @@ public class ProductDetailServiceImpl implements ProductDetailService {
         return productDetails;
     }
 
+    /** 保存规格并校验商家款式名称，新建时缺省为标准款。 */
     @Override
     public ProductDetail save(ProductDetail productDetail) {
+        if (productDetail.getStyle() != null) {
+            String style = productDetail.getStyle().trim();
+            if (style.isEmpty() || style.length() > 64) {
+                throw new com.youkeda.hashopping.common.exception.BusinessException(
+                        org.springframework.http.HttpStatus.BAD_REQUEST,"INVALID_ARGUMENT","款式需为1至64个字符");
+            }
+            productDetail.setStyle(style);
+        }
 
         if (StringUtils.isBlank(productDetail.getId())) {
+            if (productDetail.getStyle() == null) productDetail.setStyle("标准款");
             productDetail.setId(UUIDUtils.getUUID());
 
             productDetailDAO.insert(new ProductDetailDO(productDetail));

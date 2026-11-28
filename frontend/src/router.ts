@@ -12,6 +12,7 @@ export interface UserRoute {
 }
 
 const components: Record<string, () => Promise<{ default: RouteComponent }>> = {
+  'merchant/products/add': () => import('./AddProductView.vue'),
   'account/cart': () => import('./CartView.vue'),
   'account/addresses': () => import('./AddressesView.vue'),
   'account/orders': () => import('./MyOrdersView.vue'),

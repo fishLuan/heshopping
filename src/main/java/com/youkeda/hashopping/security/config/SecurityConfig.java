@@ -45,6 +45,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .accessDeniedHandler((req, res, e) -> reject(res, 403, "FORBIDDEN", "无权限或请求校验失败"));
         http.addFilterBefore(new SessionAuthenticationFilter(users, roles), AnonymousAuthenticationFilter.class);
         http.authorizeRequests()
+                .antMatchers(HttpMethod.POST, "/api/merchant/products").hasAuthority("product:manage-own")
                 .antMatchers("/user/del", "/user/batchAdd").denyAll()
                 .antMatchers(HttpMethod.POST, "/user").denyAll()
                 .antMatchers("/users", "/user", "/user/**", "/api/order/queryrecentpaysuccess").hasAuthority("ADMIN")

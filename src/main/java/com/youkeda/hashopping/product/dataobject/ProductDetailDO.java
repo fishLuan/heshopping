@@ -14,6 +14,19 @@ public class ProductDetailDO {
      */
     private String id;
 
+    /** 商家定义的款式名称，例如白色、白色加绒款。 */
+    private String style;
+
+    /** 获取款式名称。 */
+    public String getStyle() {
+        return style;
+    }
+
+    /** 设置款式名称。 */
+    public void setStyle(String style) {
+        this.style = style;
+    }
+
     /**
      * 关联商品
      */
